@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fast-Moving Flower Message Game</title>
+    <title>Custom Message Flower Popping Game</title>
     <style>
         body {
             margin: 0;
@@ -15,7 +15,7 @@
             position: absolute;
             cursor: pointer;
         }
-        #start-button {
+        #start-button, #end-screen {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -38,6 +38,12 @@
             border-radius: 5px;
             font-size: 18px;
         }
+        #end-screen {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+        }
         .message {
             position: absolute;
             background-color: rgba(255, 255, 255, 0.9);
@@ -49,24 +55,33 @@
     </style>
 </head>
 <body>
-    <div id="game-container"></div>
+    <div id="flower-container"></div>
     <button id="start-button">Start Game</button>
     <div id="game-info" style="display: none;">
         <div>Score: <span id="score">0</span></div>
     </div>
+    <div id="end-screen">
+        <h2>Game Over!</h2>
+        <p>Your score: <span id="final-score"></span></p>
+        <button id="restart-button">Play Again</button>
+    </div>
 
     <script>
-        const container = document.getElementById('game-container');
+        const container = document.getElementById('flower-container');
         const startButton = document.getElementById('start-button');
         const gameInfo = document.getElementById('game-info');
         const scoreDisplay = document.getElementById('score');
-        let elements = [];
+        const endScreen = document.getElementById('end-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restart-button');
+        let flowers = [];
         let gameInProgress = false;
         let score = 0;
         let speedMultiplier = 1;
 
         const messages = [
-            "BC", "bhar ka mat khao", "khud ka kyaal rakho", "hug krne h", "miss you"
+            "BC", "kyaal rakho", "MC", "mere Chusee", "healthy khao", 
+            "miss you", "love you", "I love your hugs mere lambu lovvy", "milna h sanjuuu"
         ];
 
         function createFlowerSVG(size = 50) {
@@ -100,31 +115,31 @@
             return svg;
         }
 
-        function createElement(size = 50, isSmall = false) {
-            const element = document.createElement('div');
-            element.className = 'flower';
-            element.style.left = Math.random() * (window.innerWidth - size) + 'px';
-            element.style.top = Math.random() * (window.innerHeight - size) + 'px';
+        function createFlower(size = 50, isSmall = false) {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.style.left = Math.random() * (window.innerWidth - size) + 'px';
+            flower.style.top = Math.random() * (window.innerHeight - size) + 'px';
             
-            let speed = isSmall ? 8 : 4;  // Smaller flowers move faster
+            const speed = isSmall ? 6 : 3;
             const dx = ((Math.random() - 0.5) * speed) * speedMultiplier;
             const dy = ((Math.random() - 0.5) * speed) * speedMultiplier;
             
-            element.appendChild(createFlowerSVG(size));
+            flower.appendChild(createFlowerSVG(size));
             
-            element.addEventListener('click', () => {
+            flower.addEventListener('click', () => {
                 if (gameInProgress) {
-                    popElement(element, size, isSmall);
+                    popFlower(flower, size, isSmall);
                 }
             });
             
-            container.appendChild(element);
-            return { element, dx, dy, isSmall };
+            container.appendChild(flower);
+            return { element: flower, dx, dy, isSmall };
         }
 
-        function popElement(element, size, isSmall) {
-            container.removeChild(element);
-            elements = elements.filter(e => e.element !== element);
+        function popFlower(flower, size, isSmall) {
+            container.removeChild(flower);
+            flowers = flowers.filter(f => f.element !== flower);
             score++;
             scoreDisplay.textContent = score;
             
@@ -132,19 +147,25 @@
 
             if (!isSmall) {
                 for (let i = 0; i < 2; i++) {
-                    elements.push(createElement(size / 2, true));
+                    flowers.push(createFlower(size / 2, true));
                 }
             } else {
-                showMessage(element);
+                showMessage(flower);
+            }
+
+            if (flowers.length === 0) {
+                for (let i = 0; i < 5; i++) {
+                    flowers.push(createFlower());
+                }
             }
         }
 
-        function showMessage(element) {
+        function showMessage(flower) {
             const message = document.createElement('div');
             message.className = 'message';
             message.textContent = messages[Math.floor(Math.random() * messages.length)];
-            message.style.left = element.style.left;
-            message.style.top = element.style.top;
+            message.style.left = flower.style.left;
+            message.style.top = flower.style.top;
             container.appendChild(message);
             
             setTimeout(() => {
@@ -152,23 +173,23 @@
             }, 2000);
         }
 
-        function moveElements() {
-            elements.forEach(({ element, dx, dy, isSmall }) => {
-                const rect = element.getBoundingClientRect();
+        function moveFlowers() {
+            flowers.forEach(flower => {
+                const rect = flower.element.getBoundingClientRect();
                 
-                if (rect.left + dx < 0 || rect.right + dx > window.innerWidth) {
-                    dx = -dx;
+                if (rect.left + flower.dx < 0 || rect.right + flower.dx > window.innerWidth) {
+                    flower.dx = -flower.dx;
                 }
-                if (rect.top + dy < 0 || rect.bottom + dy > window.innerHeight) {
-                    dy = -dy;
+                if (rect.top + flower.dy < 0 || rect.bottom + flower.dy > window.innerHeight) {
+                    flower.dy = -flower.dy;
                 }
                 
-                element.style.left = rect.left + dx + 'px';
-                element.style.top = rect.top + dy + 'px';
+                flower.element.style.left = rect.left + flower.dx + 'px';
+                flower.element.style.top = rect.top + flower.dy + 'px';
             });
             
             if (gameInProgress) {
-                requestAnimationFrame(moveElements);
+                requestAnimationFrame(moveFlowers);
             }
         }
 
@@ -176,20 +197,29 @@
             gameInProgress = true;
             score = 0;
             speedMultiplier = 1;
-            elements = [];
+            flowers = [];
             container.innerHTML = '';
             startButton.style.display = 'none';
+            endScreen.style.display = 'none';
             gameInfo.style.display = 'block';
             scoreDisplay.textContent = score;
 
             for (let i = 0; i < 12; i++) {
-                elements.push(createElement());
+                flowers.push(createFlower());
             }
 
-            moveElements();
+            moveFlowers();
+        }
+
+        function endGame() {
+            gameInProgress = false;
+            endScreen.style.display = 'block';
+            gameInfo.style.display = 'none';
+            finalScoreDisplay.textContent = score;
         }
 
         startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
     </script>
 </body>
 </html>
