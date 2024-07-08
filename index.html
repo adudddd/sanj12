@@ -12,12 +12,18 @@
         }
         #gameArea {
             position: relative;
-            width: 80%;
+            width: 100%;
             height: 500px;
             margin: 20px auto;
             background-color: #ffffff;
             border: 2px solid #000;
             overflow: hidden;
+            display: flex;
+        }
+        .half {
+            width: 50%;
+            height: 100%;
+            position: relative;
         }
         .balloon {
             position: absolute;
@@ -26,6 +32,7 @@
             background-color: red;
             border-radius: 50%;
             cursor: pointer;
+            transition: transform 0.2s;
         }
         .balloon::after {
             content: '';
@@ -35,6 +42,10 @@
             width: 6px;
             height: 20px;
             background-color: red;
+        }
+        .popped {
+            transform: scale(0);
+            opacity: 0;
         }
         #scoreBoard {
             display: flex;
@@ -59,39 +70,54 @@
     <div class="score">Player 1 Score: <span id="player1Score">0</span></div>
     <div class="score">Player 2 Score: <span id="player2Score">0</span></div>
 </div>
-<div id="gameArea"></div>
+<div id="gameArea">
+    <div id="leftHalf" class="half"></div>
+    <div id="rightHalf" class="half"></div>
+</div>
 <button id="startButton">Start Game</button>
+
+<audio id="popSound" src="pop.mp3" preload="auto"></audio>
 
 <script>
     const gameArea = document.getElementById('gameArea');
+    const leftHalf = document.getElementById('leftHalf');
+    const rightHalf = document.getElementById('rightHalf');
     const player1ScoreEl = document.getElementById('player1Score');
     const player2ScoreEl = document.getElementById('player2Score');
     const startButton = document.getElementById('startButton');
+    const popSound = document.getElementById('popSound');
+
     let player1Score = 0;
     let player2Score = 0;
-    let currentPlayer = 1;
     let gameInterval;
+    let balloonSpeed = 1000;
 
     function createBalloon() {
         const balloon = document.createElement('div');
         balloon.classList.add('balloon');
-        balloon.style.left = Math.random() * (gameArea.offsetWidth - 50) + 'px';
+        balloon.style.left = Math.random() * (gameArea.offsetWidth / 2 - 50) + 'px';
         balloon.style.top = Math.random() * (gameArea.offsetHeight - 70) + 'px';
-        balloon.addEventListener('click', popBalloon);
-        gameArea.appendChild(balloon);
+
+        if (Math.random() > 0.5) {
+            leftHalf.appendChild(balloon);
+            balloon.addEventListener('click', () => popBalloon(balloon, 1));
+        } else {
+            rightHalf.appendChild(balloon);
+            balloon.addEventListener('click', () => popBalloon(balloon, 2));
+        }
     }
 
-    function popBalloon(event) {
-        if (currentPlayer === 1) {
+    function popBalloon(balloon, player) {
+        balloon.classList.add('popped');
+        setTimeout(() => balloon.remove(), 200);
+        popSound.play();
+        if (player === 1) {
             player1Score++;
             player1ScoreEl.textContent = player1Score;
-            currentPlayer = 2;
         } else {
             player2Score++;
             player2ScoreEl.textContent = player2Score;
-            currentPlayer = 1;
         }
-        gameArea.removeChild(event.target);
     }
 
     function startGame() {
@@ -99,10 +125,17 @@
         player2Score = 0;
         player1ScoreEl.textContent = player1Score;
         player2ScoreEl.textContent = player2Score;
-        currentPlayer = 1;
+        balloonSpeed = 1000;
         clearInterval(gameInterval);
-        gameInterval = setInterval(createBalloon, 1000);
-        setTimeout(endGame, 30000); // End game after 30 seconds
+        gameInterval = setInterval(createBalloon, balloonSpeed);
+        setTimeout(increaseSpeed, 10000);
+        setTimeout(endGame, 60000); // End game after 60 seconds
+    }
+
+    function increaseSpeed() {
+        clearInterval(gameInterval);
+        balloonSpeed /= 2;
+        gameInterval = setInterval(createBalloon, balloonSpeed);
     }
 
     function endGame() {
@@ -115,5 +148,3 @@
 
 </body>
 </html>
-
-
