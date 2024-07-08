@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #e6f7e6;
+            font-family: Arial, sans-serif;
+        }
+        .flower, .face {
+            position: absolute;
+            cursor: pointer;
+        }
+        #start-button, #end-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+        #game-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        #end-screen {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .message {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <button id="start-button">Start Game</button>
+    <div id="game-info" style="display: none;">
+        <div>Time: <span id="time">60</span>s</div>
+        <div>Score: <span id="score">0</span></div>
+    </div>
+    <div id="end-screen">
+        <h2>Game Over!</h2>
+        <p>Your score: <span id="final-score"></span></p>
+        <button id="restart-button">Play Again</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('game-container');
+        const startButton = document.getElementById('start-button');
+        const gameInfo = document.getElementById('game-info');
+        const timeDisplay = document.getElementById('time');
+        const scoreDisplay = document.getElementById('score');
+        const endScreen = document.getElementById('end-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restart-button');
+        let elements = [];
+        let gameInProgress = false;
+        let score = 0;
+        let timeLeft = 60;
+        let speedMultiplier = 1;
+
+        const messages = [
+            "BC", "bhar ka mat khao", "khud ka kyaal rakho", "hug krne h", "miss you",
+            "You're awesome!", "Stay cool!", "Smile!", "You rock!", "Keep shining!"
+        ];
+
+        function createFlowerSVG(size = 50) {
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("viewBox", "0 0 100 100");
+            svg.setAttribute("width", size);
+            svg.setAttribute("height", size);
+
+            const flower = document.createElementNS(svgNS, "g");
+
+            for (let i = 0; i < 5; i++) {
+                const petal = document.createElementNS(svgNS, "ellipse");
+                petal.setAttribute("cx", "50");
+                petal.setAttribute("cy", "50");
+                petal.setAttribute("rx", "20");
+                petal.setAttribute("ry", "35");
+                petal.setAttribute("fill", "pink");
+                petal.setAttribute("transform", `rotate(${i * 72} 50 50)`);
+                flower.appendChild(petal);
+            }
+
+            const center = document.createElementNS(svgNS, "circle");
+            center.setAttribute("cx", "50");
+            center.setAttribute("cy", "50");
+            center.setAttribute("r", "15");
+            center.setAttribute("fill", "yellow");
+            flower.appendChild(center);
+
+            svg.appendChild(flower);
+            return svg;
+        }
+
+        function createFace(size = 50) {
+            const face = document.createElement('img');
+            face.src = 'https://www.shutterstock.com/image-photo/face-angry-mad-furious-young-woman-1570061401' // Replace with actual image path
+            face.width = size;
+            face.height = size;
+            face.className = 'face';
+            return face;
+        }
+
+        function createElement(type, size = 50) {
+            const element = document.createElement('div');
+            element.className = type;
+            element.style.left = Math.random() * (window.innerWidth - size) + 'px';
+            element.style.top = Math.random() * (window.innerHeight - size) + 'px';
+            
+            const dx = ((Math.random() - 0.5) * 4) * speedMultiplier;
+            const dy = ((Math.random() - 0.5) * 4) * speedMultiplier;
+            
+            if (type === 'flower') {
+                element.appendChild(createFlowerSVG(size));
+            } else {
+                element.appendChild(createFace(size));
+            }
+            
+            element.addEventListener('click', () => {
+                if (gameInProgress) {
+                    popElement(element, size, type);
+                }
+            });
+            
+            container.appendChild(element);
+            return { element, dx, dy };
+        }
+
+        function popElement(element, size, type) {
+            container.removeChild(element);
+            elements = elements.filter(e => e.element !== element);
+            score++;
+            scoreDisplay.textContent = score;
+            
+            speedMultiplier = 1 + (score / 50);
+
+            if (type === 'flower') {
+                setTimeout(() => {
+                    for (let i = 0; i < 2; i++) {
+                        elements.push(createElement('face', size / 2));
+                    }
+                }, 2000);
+            } else {
+                showMessage(element);
+            }
+        }
+
+        function showMessage(element) {
+            const message = document.createElement('div');
+            message.className = 'message';
+            message.textContent = messages[Math.floor(Math.random() * messages.length)];
+            message.style.left = element.style.left;
+            message.style.top = element.style.top;
+            container.appendChild(message);
+            
+            setTimeout(() => {
+                container.removeChild(message);
+            }, 2000);
+        }
+
+        function moveElements() {
+            elements.forEach(({ element, dx, dy }) => {
+                const rect = element.getBoundingClientRect();
+                
+                if (rect.left + dx < 0 || rect.right + dx > window.innerWidth) {
+                    dx = -dx;
+                }
+                if (rect.top + dy < 0 || rect.bottom + dy > window.innerHeight) {
+                    dy = -dy;
+                }
+                
+                element.style.left = rect.left + dx + 'px';
+                element.style.top = rect.top + dy + 'px';
+            });
+            
+            if (gameInProgress) {
+                requestAnimationFrame(moveElements);
+            }
+        }
+
+        function startGame() {
+            gameInProgress = true;
+            score = 0;
+            timeLeft = 60;
+            speedMultiplier = 1;
+            elements = [];
+            container.innerHTML = '';
+            startButton.style.display = 'none';
+            endScreen.style.display = 'none';
+            gameInfo.style.display = 'block';
+            scoreDisplay.textContent = score;
+
+            for (let i = 0; i < 12; i++) {
+                elements.push(createElement('flower'));
+            }
+
+            moveElements();
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                timeDisplay.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameInProgress = false;
+            endScreen.style.display = 'block';
+            gameInfo.style.display = 'none';
+            finalScoreDisplay.textContent = score;
+        }
+
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
