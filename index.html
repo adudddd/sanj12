@@ -1,237 +1,118 @@
-
-
-
-html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Message Flower Popping Game</title>
+    <title>Balloon Popping Game</title>
     <style>
         body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #e6f7e6;
             font-family: Arial, sans-serif;
-        }
-        .flower {
-            position: absolute;
-            cursor: pointer;
-        }
-        #start-button, #end-screen {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px 40px;
-            font-size: 24px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            background-color: #f0f0f0;
             text-align: center;
         }
-        #game-info {
+        #gameArea {
+            position: relative;
+            width: 80%;
+            height: 500px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 2px solid #000;
+            overflow: hidden;
+        }
+        .balloon {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            border-radius: 5px;
+            width: 50px;
+            height: 70px;
+            background-color: red;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 22px;
+            width: 6px;
+            height: 20px;
+            background-color: red;
+        }
+        #scoreBoard {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .score {
+            font-size: 24px;
+        }
+        #startButton {
+            margin-top: 20px;
+            padding: 10px 20px;
             font-size: 18px;
-        }
-        #end-screen {
-            display: none;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .message {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div id="flower-container"></div>
-    <button id="start-button">Start Game</button>
-    <div id="game-info" style="display: none;">
-        <div>Score: <span id="score">0</span></div>
-    </div>
-    <div id="end-screen">
-        <h2>Game Over!</h2>
-        <p>Your score: <span id="final-score"></span></p>
-        <button id="restart-button">Play Again</button>
-    </div>
 
-    <script>
-        const container = document.getElementById('flower-container');
-        const startButton = document.getElementById('start-button');
-        const gameInfo = document.getElementById('game-info');
-        const scoreDisplay = document.getElementById('score');
-        const endScreen = document.getElementById('end-screen');
-        const finalScoreDisplay = document.getElementById('final-score');
-        const restartButton = document.getElementById('restart-button');
-        let flowers = [];
-        let gameInProgress = false;
-        let score = 0;
-        let speedMultiplier = 1;
+<h1>Balloon Popping Game</h1>
+<div id="scoreBoard">
+    <div class="score">Player 1 Score: <span id="player1Score">0</span></div>
+    <div class="score">Player 2 Score: <span id="player2Score">0</span></div>
+</div>
+<div id="gameArea"></div>
+<button id="startButton">Start Game</button>
 
-        const messages = [
-            "BC", "kyaal rakho", "MC", "mere Chusee", "healthy khao", 
-            "miss you", "love you", "I love your hugs mere lambu lovvy", "milna h sanjuuu"
-        ];
+<script>
+    const gameArea = document.getElementById('gameArea');
+    const player1ScoreEl = document.getElementById('player1Score');
+    const player2ScoreEl = document.getElementById('player2Score');
+    const startButton = document.getElementById('startButton');
+    let player1Score = 0;
+    let player2Score = 0;
+    let currentPlayer = 1;
+    let gameInterval;
 
-        function createFlowerSVG(size = 50) {
-            const svgNS = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNS, "svg");
-            svg.setAttribute("viewBox", "0 0 100 100");
-            svg.setAttribute("width", size);
-            svg.setAttribute("height", size);
+    function createBalloon() {
+        const balloon = document.createElement('div');
+        balloon.classList.add('balloon');
+        balloon.style.left = Math.random() * (gameArea.offsetWidth - 50) + 'px';
+        balloon.style.top = Math.random() * (gameArea.offsetHeight - 70) + 'px';
+        balloon.addEventListener('click', popBalloon);
+        gameArea.appendChild(balloon);
+    }
 
-            const flower = document.createElementNS(svgNS, "g");
-
-            for (let i = 0; i < 5; i++) {
-                const petal = document.createElementNS(svgNS, "ellipse");
-                petal.setAttribute("cx", "50");
-                petal.setAttribute("cy", "50");
-                petal.setAttribute("rx", "20");
-                petal.setAttribute("ry", "35");
-                petal.setAttribute("fill", "pink");
-                petal.setAttribute("transform", `rotate(${i * 72} 50 50)`);
-                flower.appendChild(petal);
-            }
-
-            const center = document.createElementNS(svgNS, "circle");
-            center.setAttribute("cx", "50");
-            center.setAttribute("cy", "50");
-            center.setAttribute("r", "15");
-            center.setAttribute("fill", "yellow");
-            flower.appendChild(center);
-
-            svg.appendChild(flower);
-            return svg;
+    function popBalloon(event) {
+        if (currentPlayer === 1) {
+            player1Score++;
+            player1ScoreEl.textContent = player1Score;
+            currentPlayer = 2;
+        } else {
+            player2Score++;
+            player2ScoreEl.textContent = player2Score;
+            currentPlayer = 1;
         }
+        gameArea.removeChild(event.target);
+    }
 
-        function createFlower(size = 50, isSmall = false) {
-            const flower = document.createElement('div');
-            flower.className = 'flower';
-            flower.style.left = Math.random() * (window.innerWidth - size) + 'px';
-            flower.style.top = Math.random() * (window.innerHeight - size) + 'px';
-            
-            const speed = isSmall ? 6 : 3;
-            const dx = ((Math.random() - 0.5) * speed) * speedMultiplier;
-            const dy = ((Math.random() - 0.5) * speed) * speedMultiplier;
-            
-            flower.appendChild(createFlowerSVG(size));
-            
-            flower.addEventListener('click', () => {
-                if (gameInProgress) {
-                    popFlower(flower, size, isSmall);
-                }
-            });
-            
-            container.appendChild(flower);
-            return { element: flower, dx, dy, isSmall };
-        }
+    function startGame() {
+        player1Score = 0;
+        player2Score = 0;
+        player1ScoreEl.textContent = player1Score;
+        player2ScoreEl.textContent = player2Score;
+        currentPlayer = 1;
+        clearInterval(gameInterval);
+        gameInterval = setInterval(createBalloon, 1000);
+        setTimeout(endGame, 30000); // End game after 30 seconds
+    }
 
-        function popFlower(flower, size, isSmall) {
-            container.removeChild(flower);
-            flowers = flowers.filter(f => f.element !== flower);
-            score++;
-            scoreDisplay.textContent = score;
-            
-            speedMultiplier = 1 + (score / 50);
+    function endGame() {
+        clearInterval(gameInterval);
+        alert('Game Over! Player 1 Score: ' + player1Score + ' - Player 2 Score: ' + player2Score);
+    }
 
-            if (!isSmall) {
-                for (let i = 0; i < 2; i++) {
-                    flowers.push(createFlower(size / 2, true));
-                }
-            } else {
-                showMessage(flower);
-            }
+    startButton.addEventListener('click', startGame);
+</script>
 
-            if (flowers.length === 0) {
-                for (let i = 0; i < 5; i++) {
-                    flowers.push(createFlower());
-                }
-            }
-        }
-
-        function showMessage(flower) {
-            const numMessages = 3;
-            const radius = 50; // Radius of the circular message display
-
-            for (let i = 0; i < numMessages; i++) {
-                const angle = (i * 2 * Math.PI) / numMessages;
-                const message = document.createElement('div');
-                message.className = 'message';
-                message.textContent = messages[Math.floor(Math.random() * messages.length)];
-                message.style.left = `${flower.offsetLeft + radius * Math.cos(angle)}px`;
-                message.style.top = `${flower.offsetTop + radius * Math.sin(angle)}px`;
-                container.appendChild(message);
-
-                message.style.display = 'block';
-                
-                setTimeout(() => {
-                    container.removeChild(message);
-                }, 2000);
-            }
-        }
-
-        function moveFlowers() {
-            flowers.forEach(flower => {
-                const rect = flower.element.getBoundingClientRect();
-                
-                if (rect.left + flower.dx < 0 || rect.right + flower.dx > window.innerWidth) {
-                    flower.dx = -flower.dx;
-                }
-                if (rect.top + flower.dy < 0 || rect.bottom + flower.dy > window.innerHeight) {
-                    flower.dy = -flower.dy;
-                }
-                
-                flower.element.style.left = rect.left + flower.dx + 'px';
-                flower.element.style.top = rect.top + flower.dy + 'px';
-            });
-            
-            if (gameInProgress) {
-                requestAnimationFrame(moveFlowers);
-            }
-        }
-
-        function startGame() {
-            gameInProgress = true;
-            score = 0;
-            speedMultiplier = 1;
-            flowers = [];
-            container.innerHTML = '';
-            startButton.style.display = 'none';
-            endScreen.style.display = 'none';
-            gameInfo.style.display = 'block';
-            scoreDisplay.textContent = score;
-
-            for (let i = 0; i < 12; i++) {
-                flowers.push(createFlower());
-            }
-
-            moveFlowers();
-        }
-
-        function endGame() {
-            gameInProgress = false;
-            endScreen.style.display = 'block';
-            gameInfo.style.display = 'none';
-            finalScoreDisplay.textContent = score;
-        }
-
-        startButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', startGame);
-    </script>
 </body>
 </html>
 
