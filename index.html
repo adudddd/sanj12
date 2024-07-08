@@ -24,6 +24,14 @@
             width: 50%;
             height: 100%;
             position: relative;
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+        #leftHalf {
+            border-right: none;
+        }
+        #rightHalf {
+            border-left: none;
         }
         .balloon {
             position: absolute;
@@ -93,18 +101,19 @@
     let balloonSpeed = 1000;
 
     function createBalloon() {
-        const balloon = document.createElement('div');
-        balloon.classList.add('balloon');
-        balloon.style.left = Math.random() * (gameArea.offsetWidth / 2 - 50) + 'px';
-        balloon.style.top = Math.random() * (gameArea.offsetHeight - 70) + 'px';
+        const balloonLeft = document.createElement('div');
+        balloonLeft.classList.add('balloon');
+        balloonLeft.style.left = Math.random() * (leftHalf.offsetWidth - 50) + 'px';
+        balloonLeft.style.top = Math.random() * (gameArea.offsetHeight - 70) + 'px';
+        balloonLeft.addEventListener('click', () => popBalloon(balloonLeft, 1));
+        leftHalf.appendChild(balloonLeft);
 
-        if (Math.random() > 0.5) {
-            leftHalf.appendChild(balloon);
-            balloon.addEventListener('click', () => popBalloon(balloon, 1));
-        } else {
-            rightHalf.appendChild(balloon);
-            balloon.addEventListener('click', () => popBalloon(balloon, 2));
-        }
+        const balloonRight = document.createElement('div');
+        balloonRight.classList.add('balloon');
+        balloonRight.style.left = Math.random() * (rightHalf.offsetWidth - 50) + 'px';
+        balloonRight.style.top = Math.random() * (gameArea.offsetHeight - 70) + 'px';
+        balloonRight.addEventListener('click', () => popBalloon(balloonRight, 2));
+        rightHalf.appendChild(balloonRight);
     }
 
     function popBalloon(balloon, player) {
