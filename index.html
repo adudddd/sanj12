@@ -1,4 +1,7 @@
 
+
+
+html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,7 +54,6 @@
             padding: 10px;
             border-radius: 5px;
             font-size: 16px;
-            display: none;
         }
     </style>
 </head>
@@ -173,6 +175,8 @@
                 message.style.left = `${flower.offsetLeft + radius * Math.cos(angle)}px`;
                 message.style.top = `${flower.offsetTop + radius * Math.sin(angle)}px`;
                 container.appendChild(message);
+
+                message.style.display = 'block';
                 
                 setTimeout(() => {
                     container.removeChild(message);
@@ -230,3 +234,5 @@
     </script>
 </body>
 </html>
+
+
