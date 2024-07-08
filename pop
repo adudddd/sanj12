@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
+    <title>Popping Game</title>
     <style>
         body {
             margin: 0;
@@ -11,11 +11,11 @@
             background-color: #e6f7e6;
             font-family: Arial, sans-serif;
         }
-        .flower, .face {
+        .flower, .care-message {
             position: absolute;
             cursor: pointer;
         }
-        #start-button, #end-screen {
+        #start-button {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -38,12 +38,6 @@
             border-radius: 5px;
             font-size: 18px;
         }
-        #end-screen {
-            display: none;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-        }
         .message {
             position: absolute;
             background-color: rgba(255, 255, 255, 0.9);
@@ -52,39 +46,42 @@
             font-size: 16px;
             display: none;
         }
+        .care-message {
+            background-color: #ff9999;
+            color: #990000;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
     <div id="game-container"></div>
     <button id="start-button">Start Game</button>
     <div id="game-info" style="display: none;">
-        <div>Time: <span id="time">60</span>s</div>
         <div>Score: <span id="score">0</span></div>
-    </div>
-    <div id="end-screen">
-        <h2>Game Over!</h2>
-        <p>Your score: <span id="final-score"></span></p>
-        <button id="restart-button">Play Again</button>
     </div>
 
     <script>
         const container = document.getElementById('game-container');
         const startButton = document.getElementById('start-button');
         const gameInfo = document.getElementById('game-info');
-        const timeDisplay = document.getElementById('time');
         const scoreDisplay = document.getElementById('score');
-        const endScreen = document.getElementById('end-screen');
-        const finalScoreDisplay = document.getElementById('final-score');
-        const restartButton = document.getElementById('restart-button');
         let elements = [];
         let gameInProgress = false;
         let score = 0;
-        let timeLeft = 60;
         let speedMultiplier = 1;
 
         const messages = [
             "BC", "bhar ka mat khao", "khud ka kyaal rakho", "hug krne h", "miss you",
-            "You're awesome!", "Stay cool!", "Smile!", "You rock!", "Keep shining!"
+            "You're awesome!", "Stay cool!", "Smile!", "You rock!", "Keep shining!",
+            "Take care of yourself!", "Your health matters!", "Don't forget to rest!",
+            "Eat well, feel well!", "Your smile brightens my day!", "I worry about you!",
+            "Remember to hydrate!", "Take breaks when needed!", "You're important to me!"
         ];
 
         function createFlowerSVG(size = 50) {
@@ -118,13 +115,13 @@
             return svg;
         }
 
-        function createFace(size = 50) {
-            const face = document.createElement('img');
-            face.src = 'https://www.shutterstock.com/image-photo/face-angry-mad-furious-young-woman-1570061401' // Replace with actual image path
-            face.width = size;
-            face.height = size;
-            face.className = 'face';
-            return face;
+        function createCareMessage(size = 100) {
+            const careMessage = document.createElement('div');
+            careMessage.className = 'care-message';
+            careMessage.style.width = `${size}px`;
+            careMessage.style.height = `${size}px`;
+            careMessage.textContent = "Take care!";
+            return careMessage;
         }
 
         function createElement(type, size = 50) {
@@ -138,8 +135,8 @@
             
             if (type === 'flower') {
                 element.appendChild(createFlowerSVG(size));
-            } else {
-                element.appendChild(createFace(size));
+            } else if (type === 'care-message') {
+                element.appendChild(createCareMessage(size));
             }
             
             element.addEventListener('click', () => {
@@ -161,12 +158,14 @@
             speedMultiplier = 1 + (score / 50);
 
             if (type === 'flower') {
+                for (let i = 0; i < 2; i++) {
+                    elements.push(createElement('flower', size / 2));
+                }
                 setTimeout(() => {
-                    for (let i = 0; i < 2; i++) {
-                        elements.push(createElement('face', size / 2));
-                    }
+                    const careMessageElement = createElement('care-message', size);
+                    elements.push(careMessageElement);
                 }, 2000);
-            } else {
+            } else if (type === 'care-message') {
                 showMessage(element);
             }
         }
@@ -207,12 +206,10 @@
         function startGame() {
             gameInProgress = true;
             score = 0;
-            timeLeft = 60;
             speedMultiplier = 1;
             elements = [];
             container.innerHTML = '';
             startButton.style.display = 'none';
-            endScreen.style.display = 'none';
             gameInfo.style.display = 'block';
             scoreDisplay.textContent = score;
 
@@ -221,26 +218,9 @@
             }
 
             moveElements();
-            
-            const timer = setInterval(() => {
-                timeLeft--;
-                timeDisplay.textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        function endGame() {
-            gameInProgress = false;
-            endScreen.style.display = 'block';
-            gameInfo.style.display = 'none';
-            finalScoreDisplay.textContent = score;
         }
 
         startButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', startGame);
     </script>
 </body>
 </html>
