@@ -9,7 +9,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #fce4ec;
+            background-color: #f0e6d2;
             font-family: 'Charm', cursive;
             display: flex;
             justify-content: center;
@@ -19,10 +19,10 @@
         #envelope {
             width: 300px;
             height: 200px;
-            background-color: #f8bbd0;
+            background-color: #e6d5b8;
             position: relative;
             cursor: pointer;
-            border: 2px solid #c48b9f;
+            border: 2px solid #8b4513;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -32,15 +32,13 @@
         #stamp {
             width: 80px;
             height: 80px;
-            background-color: #ff4081;
+            background-color: #8b0000;
             position: absolute;
-            top: 10px;
-            right: 10px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #ffffff;
+            color: #f0e6d2;
             font-weight: bold;
             font-size: 12px;
             text-align: center;
@@ -86,19 +84,6 @@
             font-size: 24px;
             text-align: center;
         }
-        #heart-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
-            display: none;
-        }
-        .heart-flower {
-            position: absolute;
-            transition: all 1s ease;
-        }
         #final-message {
             position: absolute;
             top: 50%;
@@ -108,15 +93,13 @@
             text-align: center;
             display: none;
             z-index: 1001;
-            color: #ff1493;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
         button {
             font-family: 'Charm', cursive;
             font-size: 20px;
             padding: 10px 20px;
-            background-color: #ff4081;
-            color: #ffffff;
+            background-color: #8b0000;
+            color: #f0e6d2;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -138,7 +121,6 @@
         </div>
     </div>
     <div id="message-popup"></div>
-    <div id="heart-container"></div>
     <div id="final-message"></div>
 
     <script>
@@ -149,7 +131,6 @@
         const messagesLeftDisplay = document.getElementById('messages-left');
         const messagePopup = document.getElementById('message-popup');
         const finalMessage = document.getElementById('final-message');
-        const heartContainer = document.getElementById('heart-container');
 
         let flowers = [];
         let gameInProgress = false;
@@ -192,7 +173,7 @@
             const flower = document.createElementNS(svgNS, "g");
 
             const petalCount = Math.floor(Math.random() * 3) + 5; // 5 to 7 petals
-            const color = getRandomPinkishColor();
+            const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
 
             for (let i = 0; i < petalCount; i++) {
                 const petal = document.createElementNS(svgNS, "ellipse");
@@ -209,18 +190,11 @@
             center.setAttribute("cx", "50");
             center.setAttribute("cy", "50");
             center.setAttribute("r", "15");
-            center.setAttribute("fill", getRandomPinkishColor());
+            center.setAttribute("fill", `hsl(${Math.random() * 360}, 100%, 50%)`);
             flower.appendChild(center);
 
             svg.appendChild(flower);
             return svg;
-        }
-
-        function getRandomPinkishColor() {
-            const hue = Math.floor(Math.random() * 60) + 300; // 300-360 for pinks and reds
-            const saturation = Math.floor(Math.random() * 40) + 60; // 60-100%
-            const lightness = Math.floor(Math.random() * 30) + 40; // 40-70%
-            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         }
 
         function createFlower() {
@@ -272,7 +246,7 @@
             messagePopup.style.display = 'block';
             setTimeout(() => {
                 messagePopup.style.display = 'none';
-            }, 1500);
+            }, 2000); // Changed to 2 seconds
         }
 
         function moveFlowers() {
@@ -298,49 +272,29 @@
         function formHeartShape() {
             gameInProgress = false;
             messagePopup.style.display = 'none';
-            heartContainer.style.display = 'block';
-            
+
             const heartPath = [
-                [0,-4],[-1,-3],[-2,-2],[-3,-1],[-3,0],[-2,1],[-1,2],[0,3],[1,2],[2,1],[3,0],[3,-1],[2,-2],[1,-3]
+                [0,-2.5],[-1,-2],[-2,-0.5],[-2,1],[-1,3],[0,4],[1,3],[2,1],[2,-0.5],[1,-2],
+                [0.5,-1.5],[-0.5,-1.5],[-1.5,0],[-1.5,2],[-0.5,3.5],[0.5,3.5],[1.5,2],[1.5,0]
             ];
-            const scale = 35; // Adjust this value to change the size of the heart
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const scale = Math.min(window.innerWidth, window.innerHeight) / 10;
 
             flowers.forEach((flower, index) => {
                 const [x, y] = heartPath[index % heartPath.length];
-                const newFlower = flower.element.cloneNode(true);
-                newFlower.classList.add('heart-flower');
-                newFlower.style.left = `${150 + x * scale}px`;
-                newFlower.style.top = `${150 + y * scale}px`;
-                newFlower.style.transform = 'scale(0.5)'; // Make flowers smaller to fit in the heart shape
-                heartContainer.appendChild(newFlower);
+                const targetX = centerX + x * scale;
+                const targetY = centerY + y * scale;
                 
-                if (flower.element.parentNode) {
-                    flower.element.parentNode.removeChild(flower.element);
-                }
+                flower.element.style.transition = 'all 1s ease';
+                flower.element.style.left = `${targetX}px`;
+                flower.element.style.top = `${targetY}px`;
             });
-
-            // Add small decorative hearts
-            for (let i = 0; i < 10; i++) {
-                const miniHeart = document.createElement('div');
-                miniHeart.innerHTML = '❤️';
-                miniHeart.style.position = 'absolute';
-                miniHeart.style.left = `${Math.random() * 300}px`;
-                miniHeart.style.top = `${Math.random() * 300}px`;
-                miniHeart.style.fontSize = `${Math.random() * 10 + 10}px`;
-                miniHeart.style.opacity = '0.7';
-                heartContainer.appendChild(miniHeart);
-            }
 
             setTimeout(() => {
                 finalMessage.innerHTML = `<div>For my Sanju</div>`;
                 finalMessage.style.display = 'block';
                 
-                setTimeout(() => {
-                    heartContainer.style.transition = 'all 1s ease';
-                    heartContainer.style.transform = 'translate(-50%, -50%) scale(0.8)';
-                    finalMessage.style.fontSize = '48px';
-                }, 1000);
-
                 setTimeout(returnToEnvelope, 5000);
             }, 2000);
         }
@@ -348,7 +302,6 @@
         function returnToEnvelope() {
             gameContainer.style.display = 'none';
             finalMessage.style.display = 'none';
-            heartContainer.style.display = 'none';
             envelope.style.display = 'flex';
             envelope.style.transform = 'scale(1)';
         }
@@ -361,7 +314,6 @@
             envelopeContent.style.display = 'none';
             gameContainer.style.display = 'block';
             finalMessage.style.display = 'none';
-            heartContainer.innerHTML = '';
             messagesLeftDisplay.textContent = messagesLeft;
 
             for (let i = 0; i < 18; i++) {
