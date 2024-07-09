@@ -34,6 +34,8 @@
             height: 80px;
             background-color: #8b0000;
             position: absolute;
+            top: 10px;
+            right: 10px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -60,15 +62,9 @@
             display: none;
             width: 100vw;
             height: 100vh;
-        }
-        #game-info {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 18px;
+            top: 0;
+            left: 0;
         }
         #message-popup {
             position: fixed;
@@ -115,11 +111,7 @@
         <h2>To My sanju</h2>
         <button id="start-game">Start Game</button>
     </div>
-    <div id="game-container">
-        <div id="game-info">
-            <div>Messages Left: <span id="messages-left">13</span></div>
-        </div>
-    </div>
+    <div id="game-container"></div>
     <div id="message-popup"></div>
     <div id="final-message"></div>
 
@@ -128,29 +120,27 @@
         const envelopeContent = document.getElementById('envelope-content');
         const gameContainer = document.getElementById('game-container');
         const startGameButton = document.getElementById('start-game');
-        const messagesLeftDisplay = document.getElementById('messages-left');
         const messagePopup = document.getElementById('message-popup');
         const finalMessage = document.getElementById('final-message');
 
         let flowers = [];
         let gameInProgress = false;
         let messagesLeft = 13;
-        let lastClickedFlower = null;
 
         const messages = [
-            "Sanju get well supersoon",
-            "First case uss bsdk doc ka licence cancel karwaoo",
-            "tum JUDGE bnhaooge bcoz bhut log ko jail meine daalna h",
-            "Next saath meine Bunjee jumping or rafting krne h",
-            "Take me on trip and our mummies to",
-            "U are precious",
-            "I want to eat you from your hands or I miss your lunch special soya rice and chowmein",
-            "Ur ass needs my spanks",
-            "Sorry I have been not there when u needed me",
-            "I promise to be a good child to my mommy bff",
+            "Sanju get well soon",
+            "Ensure that you get a second opinion from another doctor",
+            "You have the potential to become a judge",
+            "Let's go bungee jumping and rafting next month",
+            "Take me on a trip along with our moms",
+            "You are precious to me",
+            "I miss your special lunches, especially the soya rice and chowmein",
+            "You always bring joy and laughter",
+            "I apologize for not being there when you needed me",
+            "I promise to be a better friend",
             "I promise I will never leave you",
-            "our children needs to be sent in same school",
-            "I don't want to loose u"
+            "Our children should go to the same school",
+            "I don't want to lose you"
         ];
 
         envelope.addEventListener('click', () => {
@@ -195,39 +185,35 @@
             return svg;
         }
 
-        function createFlower() {
+        function createFlower(message) {
             const size = Math.random() * 50 + 30; // Random size between 30 and 80
             const flower = document.createElement('div');
             flower.className = 'flower';
             flower.style.left = Math.random() * (window.innerWidth - size) + 'px';
             flower.style.top = Math.random() * (window.innerHeight - size) + 'px';
             
-            const dx = (Math.random() - 0.5) * 8; // Increased speed
-            const dy = (Math.random() - 0.5) * 8; // Increased speed
+            const speedX = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1);
+            const speedY = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1);
             
             flower.appendChild(createFlowerSVG(size));
             
             flower.addEventListener('click', () => {
                 if (gameInProgress) {
-                    popFlower(flower);
+                    popFlower(flower, message);
                 }
             });
             
             gameContainer.appendChild(flower);
-            return { element: flower, dx, dy };
+            return { element: flower, speedX, speedY, message };
         }
 
-        function popFlower(flower) {
-            if (messagesLeft > 0) {
-                if (lastClickedFlower && lastClickedFlower.parentNode) {
-                    lastClickedFlower.parentNode.removeChild(lastClickedFlower);
-                    flowers = flowers.filter(f => f.element !== lastClickedFlower);
-                }
-                
-                showMessage(messages[messages.length - messagesLeft]);
+        function popFlower(flower, message) {
+            if (messagesLeft > 0 && flower && flower.element && flower.element.parentNode) {
+                showMessage(message);
                 messagesLeft--;
-                messagesLeftDisplay.textContent = messagesLeft;
-                lastClickedFlower = flower;
+                
+                flower.element.parentNode.removeChild(flower.element);
+                flowers = flowers.filter(f => f !== flower);
                 
                 if (messagesLeft === 0) {
                     setTimeout(formHeartShape, 1000);
@@ -238,88 +224,89 @@
         function showMessage(message) {
             messagePopup.textContent = message;
             messagePopup.style.display = 'block';
+            setTimeout(() => {
+                messagePopup.style.display = 'none';
+            }, 2000);
         }
 
         function moveFlowers() {
             flowers.forEach(flower => {
-                const rect = flower.element.getBoundingClientRect();
-                
-                if (rect.left + flower.dx < 0 || rect.right + flower.dx > window.innerWidth) {
-                    flower.dx = -flower.dx;
+                if (flower && flower.element) {
+                    const rect = flower.element.getBoundingClientRect();
+                    
+                    // Move the flower
+                    flower.element.style.left = rect.left + flower.speedX + 'px';
+                    flower.element.style.top = rect.top + flower.speedY + 'px';
+
+                    // Bounce the flower off the edges
+                    if (rect.left <= 0 || rect.right >= window.innerWidth) {
+                        flower.speedX = -flower.speedX;
+                    }
+                    if (rect.top <= 0 || rect.bottom >= window.innerHeight) {
+                        flower.speedY = -flower.speedY;
+                    }
                 }
-                if (rect.top + flower.dy < 0 || rect.bottom + flower.dy > window.innerHeight) {
-                    flower.dy = -flower.dy;
-                }
-                
-                flower.element.style.left = rect.left + flower.dx + 'px';
-                flower.element.style.top = rect.top + flower.dy + 'px';
             });
-            
-            if (gameInProgress) {
-                requestAnimationFrame(moveFlowers);
-            }
+            requestAnimationFrame(moveFlowers);
         }
 
         function formHeartShape() {
-            gameInProgress = false;
-            messagePopup.style.display = 'none';
+            finalMessage.textContent = "You are loved!";
+            finalMessage.style.display = 'block';
 
-            const heartPath = [
-                [0,-2.5],[-1,-2],[-2,-0.5],[-2,1],[-1,3],[0,4],[1,3],[2,1],[2,-0.5],[1,-2]
+            const heartPoints = [
+                { x: 50, y: 15 },
+                { x: 30, y: 35 },
+                { x: 20, y: 50 },
+                { x: 50, y: 85 },
+                { x: 80, y: 50 },
+                { x: 80, y: 35 },
+                { x: 70, y: 15 },
             ];
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            const scale = Math.min(window.innerWidth, window.innerHeight) / 12;
 
-            flowers.forEach((flower, index) => {
-                const [x, y] = heartPath[index % heartPath.length];
-                const targetX = centerX + x * scale;
-                const targetY = centerY + y * scale;
-                
-                flower.element.style.transition = 'all 1s ease';
-                flower.element.style.left = `${targetX}px`;
-                flower.element.style.top = `${targetY}px`;
+            const heartSize = 300;
+            const offsetX = (window.innerWidth - heartSize) / 2;
+            const offsetY = (window.innerHeight - heartSize) / 2;
+
+            flowers = messages.map((message, index) => {
+                const point = heartPoints[index % heartPoints.length];
+                const size = Math.random() * 50 + 30;
+                const flower = document.createElement('div');
+                flower.className = 'flower';
+                flower.style.left = `${offsetX + (point.x / 100) * heartSize - size / 2}px`;
+                flower.style.top = `${offsetY + (point.y / 100) * heartSize - size / 2}px`;
+
+                flower.appendChild(createFlowerSVG(size));
+                gameContainer.appendChild(flower);
+                return { element: flower, message };
             });
 
             setTimeout(() => {
-                finalMessage.innerHTML = `<div>For my sanju</div>`;
-                finalMessage.style.display = 'block';
-                
                 flowers.forEach(flower => {
-                    flower.element.style.transition = 'all 0.5s ease';
-                    flower.element.style.transform = 'scale(0)';
+                    if (flower && flower.element && flower.element.parentNode) {
+                        flower.element.parentNode.removeChild(flower.element);
+                    }
                 });
-
-                setTimeout(returnToEnvelope, 2000);
-            }, 1500);
+                finalMessage.style.display = 'none';
+                envelope.style.transform = 'scale(1)';
+                envelope.style.display = 'flex';
+                envelopeContent.style.display = 'none';
+            }, 5000);
         }
 
-        function returnToEnvelope() {
-            gameContainer.style.display = 'none';
-            finalMessage.style.display = 'none';
-            envelope.style.display = 'flex';
-            envelope.style.transform = 'scale(1)';
-        }
-
-        function startGame() {
-            gameInProgress = true;
-            messagesLeft = 13;
-            flowers = [];
-            lastClickedFlower = null;
-            gameContainer.innerHTML = '';
+        startGameButton.addEventListener('click', () => {
             envelopeContent.style.display = 'none';
             gameContainer.style.display = 'block';
-            finalMessage.style.display = 'none';
-            messagesLeftDisplay.textContent = messagesLeft;
+            gameInProgress = true;
 
-            for (let i = 0; i < 15; i++) {
-                flowers.push(createFlower());
-            }
+            messages.forEach(message => {
+                const flower = createFlower(message);
+                flowers.push(flower);
+            });
 
             moveFlowers();
-        }
+        });
 
-        startGameButton.addEventListener('click', startGame);
     </script>
 </body>
 </html>
