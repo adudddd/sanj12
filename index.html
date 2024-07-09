@@ -113,7 +113,7 @@
 </head>
 <body>
     <div id="envelope">
-        <div id="stamp">Secret message for you BC</div>
+        <div id="stamp">Secret message for you</div>
     </div>
     <div id="envelope-content">
         <h2>From Shivi</h2>
@@ -133,7 +133,7 @@
         const envelopeContent = document.getElementById('envelope-content');
         const gameContainer = document.getElementById('game-container');
         const startGameButton = document.getElementById('start-game');
-        const messagesLeftDisplay = document.getElementById('messages-left');
+        let messagesLeftDisplay = document.getElementById('messages-left');
         const messagePopup = document.getElementById('message-popup');
         const finalMessage = document.getElementById('final-message');
 
@@ -142,19 +142,19 @@
         let messagesLeft = 13;
 
         const messages = [
-            "Sanju get well supersoon",
-            "First case uss bsdk doc ka licence cancel karwaoo",
-            "tum JUDGE bnhaooge bcoz bhut log ko jail meine daalna h",
-            "Next saath meine Bunjee jumping or rafting krne h",
-            "Take me on trip and our mummies to",
-            "U are precious",
-            "I want to eat you from your hands or I miss your lunch special soya rice and chowmein",
-            "Ur ass needs my spanks",
-            "Sorry I have been not there when u needed me",
-            "I promise to be a good child to my mommy bff",
+            "Sanju get well soon",
+            "Take care and recover quickly",
+            "Sending you positive vibes",
+            "You are in my thoughts",
+            "Wishing you a speedy recovery",
+            "You are precious",
+            "Missing your special meals",
+            "Stay strong",
+            "Sorry I wasn't there when you needed me",
+            "I promise to be a better friend",
             "I promise I will never leave you",
-            "our children needs to be sent in same school",
-            "I don't want to loose u"
+            "Let's stay connected",
+            "I don't want to lose you"
         ];
 
         console.log("Script loaded");
@@ -297,7 +297,7 @@
             });
 
             setTimeout(() => {
-                finalMessage.innerHTML = `<div>For my sanju</div>`;
+                finalMessage.innerHTML = `<div>For my friend</div>`;
                 finalMessage.style.display = 'block';
                 
                 flowers.forEach(flower => {
