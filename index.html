@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magical Envelope to Flower Game</title>
+    <title>CLICK! ITS FOR YOU</title>
     <link href="https://fonts.googleapis.com/css2?family=Charm&display=swap" rel="stylesheet">
     <style>
         body {
@@ -27,6 +27,7 @@
             justify-content: center;
             align-items: center;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            transition: all 0.5s ease;
         }
         #stamp {
             width: 80px;
@@ -39,9 +40,10 @@
             align-items: center;
             color: #f0e6d2;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
             text-align: center;
             line-height: 1.2;
+            padding: 5px;
         }
         #envelope-content {
             display: none;
@@ -90,6 +92,7 @@
             font-size: 36px;
             text-align: center;
             display: none;
+            z-index: 1001;
         }
         button {
             font-family: 'Charm', cursive;
@@ -105,7 +108,7 @@
 </head>
 <body>
     <div id="envelope">
-        <div id="stamp">Hogwarts School of Witchcraft and Wizardry</div>
+        <div id="stamp">Secret message for you BC</div>
     </div>
     <div id="envelope-content">
         <h2>From Shivi</h2>
@@ -132,6 +135,7 @@
         let flowers = [];
         let gameInProgress = false;
         let messagesLeft = 13;
+        let lastClickedFlower = null;
 
         const messages = [
             "Sanju get well supersoon",
@@ -150,8 +154,11 @@
         ];
 
         envelope.addEventListener('click', () => {
-            envelope.style.display = 'none';
-            envelopeContent.style.display = 'block';
+            envelope.style.transform = 'scale(0)';
+            setTimeout(() => {
+                envelope.style.display = 'none';
+                envelopeContent.style.display = 'block';
+            }, 500);
         });
 
         function createFlowerSVG(size) {
@@ -195,8 +202,8 @@
             flower.style.left = Math.random() * (window.innerWidth - size) + 'px';
             flower.style.top = Math.random() * (window.innerHeight - size) + 'px';
             
-            const dx = (Math.random() - 0.5) * 4;
-            const dy = (Math.random() - 0.5) * 4;
+            const dx = (Math.random() - 0.5) * 8; // Increased speed
+            const dy = (Math.random() - 0.5) * 8; // Increased speed
             
             flower.appendChild(createFlowerSVG(size));
             
@@ -212,27 +219,25 @@
 
         function popFlower(flower) {
             if (messagesLeft > 0) {
+                if (lastClickedFlower && lastClickedFlower.parentNode) {
+                    lastClickedFlower.parentNode.removeChild(lastClickedFlower);
+                    flowers = flowers.filter(f => f.element !== lastClickedFlower);
+                }
+                
                 showMessage(messages[messages.length - messagesLeft]);
                 messagesLeft--;
                 messagesLeftDisplay.textContent = messagesLeft;
+                lastClickedFlower = flower;
                 
-                setTimeout(() => {
-                    gameContainer.removeChild(flower);
-                    flowers = flowers.filter(f => f.element !== flower);
-                    
-                    if (messagesLeft === 0) {
-                        formHeartShape();
-                    }
-                }, 3000);
+                if (messagesLeft === 0) {
+                    setTimeout(formHeartShape, 1000);
+                }
             }
         }
 
         function showMessage(message) {
             messagePopup.textContent = message;
             messagePopup.style.display = 'block';
-            setTimeout(() => {
-                messagePopup.style.display = 'none';
-            }, 3000);
         }
 
         function moveFlowers() {
@@ -257,6 +262,8 @@
 
         function formHeartShape() {
             gameInProgress = false;
+            messagePopup.style.display = 'none';
+
             const heartPath = [
                 [0,-2.5],[-1,-2],[-2,-0.5],[-2,1],[-1,3],[0,4],[1,3],[2,1],[2,-0.5],[1,-2]
             ];
@@ -277,13 +284,28 @@
             setTimeout(() => {
                 finalMessage.innerHTML = `<div>For my sanju</div>`;
                 finalMessage.style.display = 'block';
-            }, 1000);
+                
+                flowers.forEach(flower => {
+                    flower.element.style.transition = 'all 0.5s ease';
+                    flower.element.style.transform = 'scale(0)';
+                });
+
+                setTimeout(returnToEnvelope, 2000);
+            }, 1500);
+        }
+
+        function returnToEnvelope() {
+            gameContainer.style.display = 'none';
+            finalMessage.style.display = 'none';
+            envelope.style.display = 'flex';
+            envelope.style.transform = 'scale(1)';
         }
 
         function startGame() {
             gameInProgress = true;
             messagesLeft = 13;
             flowers = [];
+            lastClickedFlower = null;
             gameContainer.innerHTML = '';
             envelopeContent.style.display = 'none';
             gameContainer.style.display = 'block';
