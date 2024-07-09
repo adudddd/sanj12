@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLICK! ITS FOR YOU</title>
+    <title>Secret Message Flower Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Charm&display=swap" rel="stylesheet">
     <style>
         body {
@@ -34,6 +34,8 @@
             height: 80px;
             background-color: #8b0000;
             position: absolute;
+            top: 10px;
+            right: 10px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -60,6 +62,9 @@
             display: none;
             width: 100vw;
             height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         #game-info {
             position: absolute;
@@ -135,7 +140,6 @@
         let flowers = [];
         let gameInProgress = false;
         let messagesLeft = 13;
-        let lastClickedFlower = null;
 
         const messages = [
             "Sanju get well supersoon",
@@ -153,7 +157,10 @@
             "I don't want to loose u"
         ];
 
+        console.log("Script loaded");
+
         envelope.addEventListener('click', () => {
+            console.log("Envelope clicked");
             envelope.style.transform = 'scale(0)';
             setTimeout(() => {
                 envelope.style.display = 'none';
@@ -195,39 +202,37 @@
             return svg;
         }
 
-        function createFlower() {
+        function createFlower(message) {
             const size = Math.random() * 50 + 30; // Random size between 30 and 80
             const flower = document.createElement('div');
             flower.className = 'flower';
             flower.style.left = Math.random() * (window.innerWidth - size) + 'px';
-            flower.style.top = Math.random() * (window.innerHeight - size) + 'px';
+            flower.style.top = window.innerHeight + 'px'; // Start below the screen
             
-            const dx = (Math.random() - 0.5) * 8; // Increased speed
-            const dy = (Math.random() - 0.5) * 8; // Increased speed
+            const speed = Math.random() * 2 + 1; // Random speed between 1 and 3
             
             flower.appendChild(createFlowerSVG(size));
             
             flower.addEventListener('click', () => {
                 if (gameInProgress) {
-                    popFlower(flower);
+                    popFlower(flower, message);
                 }
             });
             
             gameContainer.appendChild(flower);
-            return { element: flower, dx, dy };
+            console.log("Flower created:", flower);
+            return { element: flower, speed, message };
         }
 
-        function popFlower(flower) {
-            if (messagesLeft > 0) {
-                if (lastClickedFlower && lastClickedFlower.parentNode) {
-                    lastClickedFlower.parentNode.removeChild(lastClickedFlower);
-                    flowers = flowers.filter(f => f.element !== lastClickedFlower);
-                }
-                
-                showMessage(messages[messages.length - messagesLeft]);
+        function popFlower(flower, message) {
+            console.log("Flower popped:", flower, message);
+            if (messagesLeft > 0 && flower && flower.element && flower.element.parentNode) {
+                showMessage(message);
                 messagesLeft--;
                 messagesLeftDisplay.textContent = messagesLeft;
-                lastClickedFlower = flower;
+                
+                flower.element.parentNode.removeChild(flower.element);
+                flowers = flowers.filter(f => f !== flower);
                 
                 if (messagesLeft === 0) {
                     setTimeout(formHeartShape, 1000);
@@ -236,23 +241,28 @@
         }
 
         function showMessage(message) {
+            console.log("Showing message:", message);
             messagePopup.textContent = message;
             messagePopup.style.display = 'block';
+            setTimeout(() => {
+                messagePopup.style.display = 'none';
+            }, 1000);
         }
 
         function moveFlowers() {
             flowers.forEach(flower => {
-                const rect = flower.element.getBoundingClientRect();
-                
-                if (rect.left + flower.dx < 0 || rect.right + flower.dx > window.innerWidth) {
-                    flower.dx = -flower.dx;
+                if (flower && flower.element) {
+                    const rect = flower.element.getBoundingClientRect();
+                    
+                    // Move the flower upwards
+                    flower.element.style.top = rect.top - flower.speed + 'px';
+                    
+                    // If the flower has moved off the top of the screen, reset its position to the bottom
+                    if (rect.bottom < 0) {
+                        flower.element.style.top = window.innerHeight + 'px';
+                        flower.element.style.left = Math.random() * (window.innerWidth - rect.width) + 'px';
+                    }
                 }
-                if (rect.top + flower.dy < 0 || rect.bottom + flower.dy > window.innerHeight) {
-                    flower.dy = -flower.dy;
-                }
-                
-                flower.element.style.left = rect.left + flower.dx + 'px';
-                flower.element.style.top = rect.top + flower.dy + 'px';
             });
             
             if (gameInProgress) {
@@ -261,6 +271,7 @@
         }
 
         function formHeartShape() {
+            console.log("Forming heart shape");
             gameInProgress = false;
             messagePopup.style.display = 'none';
 
@@ -271,14 +282,18 @@
             const centerY = window.innerHeight / 2;
             const scale = Math.min(window.innerWidth, window.innerHeight) / 12;
 
-            flowers.forEach((flower, index) => {
-                const [x, y] = heartPath[index % heartPath.length];
+            flowers.forEach(flower => flower.element.remove());
+            flowers = [];
+
+            heartPath.forEach(([x, y]) => {
+                const flower = createFlower("❤️");
                 const targetX = centerX + x * scale;
                 const targetY = centerY + y * scale;
                 
                 flower.element.style.transition = 'all 1s ease';
                 flower.element.style.left = `${targetX}px`;
                 flower.element.style.top = `${targetY}px`;
+                flowers.push(flower);
             });
 
             setTimeout(() => {
@@ -295,6 +310,7 @@
         }
 
         function returnToEnvelope() {
+            console.log("Returning to envelope");
             gameContainer.style.display = 'none';
             finalMessage.style.display = 'none';
             envelope.style.display = 'flex';
@@ -302,24 +318,28 @@
         }
 
         function startGame() {
+            console.log("Game started");
             gameInProgress = true;
             messagesLeft = 13;
             flowers = [];
-            lastClickedFlower = null;
-            gameContainer.innerHTML = '';
+            gameContainer.innerHTML = '<div id="game-info"><div>Messages Left: <span id="messages-left">13</span></div></div>';
             envelopeContent.style.display = 'none';
             gameContainer.style.display = 'block';
             finalMessage.style.display = 'none';
-            messagesLeftDisplay.textContent = messagesLeft;
+            messagesLeftDisplay = document.getElementById('messages-left');
 
-            for (let i = 0; i < 15; i++) {
-                flowers.push(createFlower());
+            const shuffledMessages = [...messages].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < 13; i++) {
+                flowers.push(createFlower(shuffledMessages[i]));
             }
 
             moveFlowers();
         }
 
         startGameButton.addEventListener('click', startGame);
+
+        console.log("Event listeners set up");
     </script>
 </body>
 </html>
