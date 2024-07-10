@@ -134,7 +134,7 @@
 
         let flowers = [];
         let gameInProgress = false;
-        let messagesLeft = 16;
+        let messageIndex = 0;
 
         const messages = [
             "Sanju get well supersoon",
@@ -173,14 +173,12 @@
             const flower = document.createElementNS(svgNS, "g");
 
             const petalCount = Math.floor(Math.random() * 3) + 5; // 5 to 7 petals
-            const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            const color = `hsl(${Math.random() * 360}, 100%, 70%)`; // Brighter colors
+            const centerColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
 
             for (let i = 0; i < petalCount; i++) {
-                const petal = document.createElementNS(svgNS, "ellipse");
-                petal.setAttribute("cx", "50");
-                petal.setAttribute("cy", "50");
-                petal.setAttribute("rx", "20");
-                petal.setAttribute("ry", "35");
+                const petal = document.createElementNS(svgNS, "path");
+                petal.setAttribute("d", "M50,50 Q65,25 50,0 Q35,25 50,50");
                 petal.setAttribute("fill", color);
                 petal.setAttribute("transform", `rotate(${i * (360 / petalCount)} 50 50)`);
                 flower.appendChild(petal);
@@ -189,8 +187,8 @@
             const center = document.createElementNS(svgNS, "circle");
             center.setAttribute("cx", "50");
             center.setAttribute("cy", "50");
-            center.setAttribute("r", "15");
-            center.setAttribute("fill", `hsl(${Math.random() * 360}, 100%, 50%)`);
+            center.setAttribute("r", "10");
+            center.setAttribute("fill", centerColor);
             flower.appendChild(center);
 
             svg.appendChild(flower);
@@ -198,14 +196,14 @@
         }
 
         function createFlower() {
-            const size = Math.random() * 50 + 30; // Random size between 30 and 80
+            const size = Math.random() * 50 + 50; // 50 to 100
             const flower = document.createElement('div');
             flower.className = 'flower';
             flower.style.left = Math.random() * (window.innerWidth - size) + 'px';
             flower.style.top = Math.random() * (window.innerHeight - size) + 'px';
             
-            const dx = (Math.random() - 0.5) * 8; // Increased speed
-            const dy = (Math.random() - 0.5) * 8; // Increased speed
+            const dx = (Math.random() - 0.5) * 4; // Reduced speed
+            const dy = (Math.random() - 0.5) * 4; // Reduced speed
             
             flower.appendChild(createFlowerSVG(size));
             
@@ -220,10 +218,10 @@
         }
 
         function popFlower(flower) {
-            if (messagesLeft > 0) {
-                showMessage(messages[messages.length - messagesLeft]);
-                messagesLeft--;
-                messagesLeftDisplay.textContent = messagesLeft;
+            if (messageIndex < messages.length && gameInProgress) {
+                showMessage(messages[messageIndex]);
+                messageIndex++;
+                messagesLeftDisplay.textContent = messages.length - messageIndex;
                 
                 flower.style.transition = 'all 0.5s ease';
                 flower.style.transform = 'scale(0)';
@@ -234,7 +232,7 @@
                         flowers = flowers.filter(f => f.element !== flower);
                     }
                     
-                    if (messagesLeft === 0) {
+                    if (messageIndex === messages.length) {
                         setTimeout(formHeartShape, 1000);
                     }
                 }, 500);
@@ -246,7 +244,7 @@
             messagePopup.style.display = 'block';
             setTimeout(() => {
                 messagePopup.style.display = 'none';
-            }, 2000); // Changed to 2 seconds
+            }, 2000);
         }
 
         function moveFlowers() {
@@ -279,7 +277,7 @@
             ];
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
-            const scale = Math.min(window.innerWidth, window.innerHeight) / 10;
+            const scale = Math.min(window.innerWidth, window.innerHeight) / 6; // Increased scale
 
             flowers.forEach((flower, index) => {
                 const [x, y] = heartPath[index % heartPath.length];
@@ -292,7 +290,7 @@
             });
 
             setTimeout(() => {
-                finalMessage.innerHTML = `<div>For my Sanju</div>`;
+                finalMessage.innerHTML = `<div>for my Sanju</div>`;
                 finalMessage.style.display = 'block';
                 
                 setTimeout(returnToEnvelope, 5000);
@@ -308,15 +306,15 @@
 
         function startGame() {
             gameInProgress = true;
-            messagesLeft = 16;
+            messageIndex = 0;
             flowers = [];
             gameContainer.innerHTML = '';
             envelopeContent.style.display = 'none';
             gameContainer.style.display = 'block';
             finalMessage.style.display = 'none';
-            messagesLeftDisplay.textContent = messagesLeft;
+            messagesLeftDisplay.textContent = messages.length;
 
-            for (let i = 0; i < 18; i++) {
+            for (let i = 0; i < messages.length; i++) {
                 flowers.push(createFlower());
             }
 
